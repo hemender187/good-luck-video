@@ -21,7 +21,7 @@ def centered(d,y,text,font,fill,alpha=255):
 p=subprocess.Popen(["ffmpeg","-y","-f","rawvideo","-pix_fmt","rgb24","-s",f"{W}x{H}","-r",str(FPS),"-i","-",
  "-f","lavfi","-i",f"sine=frequency=528:duration={DUR},volume=0.15","-f","lavfi","-i",f"sine=frequency=396:duration={DUR},volume=0.1",
  "-filter_complex","[1][2]amix=inputs=2,afade=t=in:d=2,afade=t=out:st=13:d=2[a]","-map","0:v","-map","[a]",
- "-c:v","libx264","-preset","veryfast","-pix_fmt","yuv420p","-c:a","aac","-shortest",out],stdin=subprocess.PIPE,stderr=subprocess.DEVNULL)
+ "-c:v","libx264","-preset","veryfast","-pix_fmt","yuv420p","-c:a","aac","-ar","48000","-b:a","128k","-profile:v","high","-level","4.0","-r","30","-movflags","+faststart","-shortest",out],stdin=subprocess.PIPE,stderr=subprocess.DEVNULL)
 for i in range(FPS*DUR):
     t=i/FPS; im=bg(t).convert("RGBA"); ov=Image.new("RGBA",(W,H),(0,0,0,0)); d=ImageDraw.Draw(ov)
     for x,y,r,ph in stars:
