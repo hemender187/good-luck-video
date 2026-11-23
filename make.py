@@ -149,6 +149,15 @@ d.rounded_rectangle([20, 25, cw + 20, 125], 50, fill=(255, 255, 255, 255))
 d.text(((cw + 40) / 2, 75), cta_txt, font=cta_f, fill=(200, 20, 60, 255), anchor="mm")
 cta_glow = cta.filter(ImageFilter.GaussianBlur(18))
 handle_f = font(POP, 40)
+sub_f = font(POP, 54)
+def pill(text, bg, fg, w=520):
+    im = Image.new("RGBA", (w + 40, 140), (0, 0, 0, 0)); dd = ImageDraw.Draw(im)
+    dd.rounded_rectangle([20, 20, w + 20, 120], 50, fill=bg)
+    dd.text(((w + 40) / 2, 70), text, font=sub_f, fill=fg, anchor="mm")
+    return im
+SUB = pill("SUBSCRIBE", (230, 20, 30, 255), (255, 255, 255, 255))
+SUBBED = pill("SUBSCRIBED", (90, 90, 90, 255), (235, 235, 235, 255))
+SUB_GLOW = SUB.filter(ImageFilter.GaussianBlur(20))
 
 # particles
 sparks = [(rnd.random() * W, rnd.random() * H, rnd.uniform(4, 11), rnd.random() * 6.28, rnd.uniform(1.5, 4)) for _ in range(70)]
@@ -221,8 +230,30 @@ def frame(i):
         paste_scaled(im, cta, W / 2, 1520, s)
         paste_scaled(im, emoji("👆", 110), W / 2 + cw / 2 - 30, 1630 + 18 * math.sin(tm * 8), clamp((tm - cstart - 0.3) / 0.2))
     im = Image.alpha_composite(im, VIGN)
+    # subscribe button with tap animation
+    sstart = cstart + 1.6
+    if tm > sstart:
+        st = tm - sstart; tap = 2.0
+        sx, sy = W / 2 - 40, 1700
+        s = ease_back(st / 0.4)
+        if st < tap:
+            s *= 1 + 0.05 * math.sin(st * 8)
+            paste_scaled(im, SUB_GLOW, sx, sy, s * 1.06)
+            paste_scaled(im, SUB, sx, sy, s)
+        else:
+            press = 0.92 if st < tap + 0.15 else 1.0
+            paste_scaled(im, SUBBED, sx, sy, press)
+        bell_wiggle = 18 * math.sin(st * 20) if tap < st < tap + 0.8 else 0
+        paste_scaled(im, emoji("🔔", 95).rotate(bell_wiggle, expand=True), sx + 330, sy, s)
+        # hand moves in and taps
+        if st > 0.8:
+            k = clamp((st - 0.8) / (tap - 0.9))
+            hx = W + 100 + (sx + 150 - W - 100) * (1 - (1 - k) ** 3)
+            hy = sy + 260 + (sy + 70 - sy - 260) * (1 - (1 - k) ** 3)
+            hs = 0.85 if tap - 0.05 < st < tap + 0.15 else 1.0
+            paste_scaled(im, emoji("👆", 120), hx, hy, hs, clamp(1 - (st - tap - 1.0) / 0.4))
     d = ImageDraw.Draw(im)
-    d.text((W / 2, 1800), "@hemender187Official", font=handle_f, fill=(255, 255, 255, 220), anchor="mm", stroke_width=3, stroke_fill=(0, 0, 0, 160))
+    d.text((W / 2, 1830), "@hemender187Official", font=handle_f, fill=(255, 255, 255, 220), anchor="mm", stroke_width=3, stroke_fill=(0, 0, 0, 160))
     if tm < 0.35:  # flash out of transition
         im = Image.alpha_composite(im, Image.new("RGBA", (W, H), (255, 255, 255, int(255 * (1 - tm / 0.35)))))
     if t > DUR - 0.6:
